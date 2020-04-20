@@ -77,18 +77,18 @@ const Table = () => {
     {value: 'Sum', label: `Sum`}
   ]
   createColumns(selectValue, columns)
-  const requestData = useCallback(async (setApplications, setLoading, setSelectValue) => {
+  const requestData = useCallback(async (setApplications, setLoading, setSelectValue, loading) => {
     const {data} = await ApiService.post(`data`, {});
     setApplications(data)
+    loading && setSelectValue('Average')
     setLoading(false)
-    setSelectValue('Average')
   }, []);
 
   useEffect(() => {
     setTimeout(async () => {
-      await requestData(setApplications, setLoading, setSelectValue)
+      await requestData(setApplications, setLoading, setSelectValue, loading)
     }, UPDATE_TIMEOUT);
-  }, [applications, setApplications, requestData])
+  }, [applications, setApplications, requestData, loading])
 
 
   return (

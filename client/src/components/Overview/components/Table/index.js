@@ -5,6 +5,7 @@ import React, {
 } from 'react';
 import ReactTable from 'react-table';
 import Select from 'react-select';
+import ToggleButton from 'react-toggle-button'
 
 import ApiService from '../../../../api/base';
 
@@ -14,6 +15,13 @@ import './_overview.scss';
 
 const UPDATE_PERIOD = 1;
 const UPDATE_TIMEOUT = 1000 * UPDATE_PERIOD;
+
+const groupedOptions = [
+  {value: 'Average', label: `Average`},
+  {value: 'Min', label: `Min:`},
+  {value: 'Max', label: `Max:`},
+  {value: 'Sum', label: `Sum`}
+]
 
 const createColumns = (selectValue, columns) => {
   if (columns.length === 1) {
@@ -70,14 +78,15 @@ const Table = () => {
   const [applications, setApplications] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectValue, setSelectValue] = useState('')
-  const groupedOptions = [
-    {value: 'Average', label: `Average`},
-    {value: 'Min', label: `Min:`},
-    {value: 'Max', label: `Max:`},
-    {value: 'Sum', label: `Sum`}
-  ]
+  const [enabled, setEnabled] = useState(true)
+
   createColumns(selectValue, columns)
-  const requestData = useCallback(async (setApplications, setLoading, setSelectValue, loading) => {
+  const requestData = useCallback(async ({
+                                           setApplications,
+                                           setLoading,
+                                           setSelectValue,
+                                           loading
+                                         }) => {
     const {data} = await ApiService.post(`data`, {});
     setApplications(data)
     loading && setSelectValue('Average')
@@ -85,10 +94,13 @@ const Table = () => {
   }, []);
 
   useEffect(() => {
-    setTimeout(async () => {
-      await requestData(setApplications, setLoading, setSelectValue, loading)
-    }, UPDATE_TIMEOUT);
-  }, [applications, setApplications, requestData, loading])
+    if (enabled) {
+      setTimeout(async () => {
+        let props = {setApplications, setLoading, setSelectValue, loading}
+        await requestData(props)
+      }, UPDATE_TIMEOUT);
+    }
+  }, [applications, setApplications, requestData, loading, enabled])
 
 
   return (
@@ -112,6 +124,15 @@ const Table = () => {
               defaultValue={groupedOptions[0]}
               onChange={({value}) => setSelectValue(value)}
           />
+        </div>
+        <div className={"ReactToggle"}>
+        <ToggleButton
+            value={enabled}
+            onToggle={() => {
+              setEnabled(!enabled)
+            }}
+        />
+        <p>{enabled ? ' System is enabled' : 'System is disabled'}</p>
         </div>
       </div>
   )
